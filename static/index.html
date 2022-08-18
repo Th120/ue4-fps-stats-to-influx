@@ -77,17 +77,6 @@
     }
   </style>
   <script>
-    function myProgressHandler(event) {
-      //your code to track upload progress
-      const p = Math.floor((event.loaded / event.total) * 100);
-      console.log(p);
-    }
-
-    function myOnLoadHandler(event) {
-      // your code on finished upload
-      console.log("done");
-    }
-
     async function upload() {
       const file = document.getElementById("upload-file").files[0];
       const buffer = !file ? undefined : await file.arrayBuffer();
