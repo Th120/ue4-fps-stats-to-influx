@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
+    "allowUnreachableCode": false,
+    "declaration": true,
+    "experimentalDecorators": true,
+    "module": "commonjs",
+    "target": "es2020",
+    "sourceMap": true,
+    "strict": true,
+    "outDir": "build",
+    "strictPropertyInitialization": false,
+    "emitDecoratorMetadata": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "removeComments": true,
+  },
+  "include": [
+    "./src"
+  ],
+  "exclude": [
+    "./node_modules",
+  ]
+} 

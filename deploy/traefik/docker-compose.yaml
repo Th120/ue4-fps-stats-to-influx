@@ -1,0 +1,35 @@
+version: "3.8"
+services:
+    traefik:
+        image: traefik:latest
+        restart: unless-stopped
+        ports:
+            - "443:443"
+            - "80:80"
+        command:
+            - --log.level=DEBUG
+            - --providers.docker=true 
+            - --providers.docker.exposedbydefault=false 
+            - --entrypoints.web.address=:80 
+            - --entrypoints.web.http.redirections.entrypoint.to=web-secured
+            - --entrypoints.web.http.redirections.entrypoint.scheme=https
+            - --entrypoints.web-secured.address=:443
+            - --entrypoints.web-secured.http.tls=true
+            - --providers.file.filename=/dynamic.yaml 
+            - --providers.docker.network=web
+            - --certificatesresolvers.letsencrypt.acme.tlschallenge=true 
+            - --certificatesresolvers.letsencrypt.acme.email=REPLACEME
+            - --certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json
+        volumes:
+            - ./letsencrypt:/letsencrypt 
+            - /var/run/docker.sock:/var/run/docker.sock 
+            - ./dynamic.yaml:/dynamic.yaml
+        networks:
+            - web
+            - local
+networks:
+    web:
+        external: true
+    local:
+        external: false
+     

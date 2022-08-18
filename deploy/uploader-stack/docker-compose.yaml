@@ -1,0 +1,47 @@
+version: "3.9"
+services:
+  influx_bench:
+    image: influxdb:latest
+    container_name: 'influx_bench'
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: admin
+      DOCKER_INFLUXDB_INIT_PASSWORD: REPLACE_ME!!!
+      DOCKER_INFLUXDB_INIT_ORG: TacByte
+      DOCKER_INFLUXDB_INIT_BUCKET: benchmarks
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: REPLACE_ME!!!
+    volumes:
+        - ./data:/var/lib/influxdb2
+        - ./config:/etc/influxdb2
+    networks:
+      - local
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.influxbench.loadbalancer.server.port=8086"
+      - "traefik.http.routers.influxbenchsec.tls=true"
+      - "traefik.http.routers.influxbenchsec.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.influxbenchsec.rule=Host(`your-address-to-access-influx.com`)"
+      - "traefik.http.routers.influxbenchsec.entrypoints=web-secured"
+      - "traefik.http.routers.influxbenchsec.service=influxbench"
+  ue4-fps-stats-to-influx:
+    image: th120/ue4-fps-stats-to-influx:latest
+    restart: always
+    depends_on: 
+        - influx_bench
+    environment:
+        INFLUX_URL: "http://influx_bench:8086"
+        INFLUX_TOKEN: REPLACE_ME!!!
+        PASSWORD: REPLACE_ME!!!
+    networks:
+        - local 
+    labels:
+        - "traefik.enable=true" 
+        - "traefik.http.middlewares.gzipcompression.compress=true"
+        - "traefik.http.routers.ue4-fps-stats-to-influx.middlewares=gzipcompression@docker"
+        - "traefik.http.routers.ue4-fps-stats-to-influx.rule=Host(`your-address-to-upload.com`)" 
+        - "traefik.http.routers.ue4-fps-stats-to-influx.entrypoints=web-secured" 
+        - "traefik.http.routers.ue4-fps-stats-to-influx.tls.certresolver=letsencrypt"
+networks:
+  local:
+    external:
+      name: traefik_local
