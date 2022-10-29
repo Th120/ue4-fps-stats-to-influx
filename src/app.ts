@@ -129,24 +129,11 @@ async function handleCsv(payload: IPayload, writeApi: WriteApi): Promise<void> {
 
   const baseTime = new Date("2022-01-01T00:00:00.000Z");
 
-  const decBuckets = Object.values(
-    _.groupBy(
-      parsed.map(x => x.time),
-      x => x
-    )
-  );
-
-  const linearBucketFrameTransform = decBuckets
-    .map(values => {
-      const transformStepSize = 0.01 / values.length;
-      return values.map((val, i) => val + i * transformStepSize);
-    })
-    .flat()
-    .sort((x, y) => x - y);
+  let currTime = 0;
 
   await writeApi.writePoints(
-    parsed.map((x, i) =>
-      new Point(payload.map)
+    parsed.map(x => {
+      const point = new Point(payload.map)
         .floatField("gt", x.gt)
         .floatField("rt", x.rt)
         .floatField("gpu", x.gpu)
@@ -154,8 +141,12 @@ async function handleCsv(payload: IPayload, writeApi: WriteApi): Promise<void> {
         .tag("player", payload.player)
         .tag("version", payload.version)
         .tag("identifier", payload.identifier)
-        .timestamp(addMilliseconds(baseTime, linearBucketFrameTransform[i] * 1_000))
-    )
+        .timestamp(addMilliseconds(baseTime, currTime));
+
+      currTime = currTime + x.frame;
+
+      return point;
+    })
   );
   await writeApi.flush(true);
 }
